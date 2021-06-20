@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm sản phẩm</title>
+</head>
+<body>
+<a th:href="@{/product/list-product}">List Product</a>
+<form th:action="@{/product/product-created}" method="post" th:object="${product}">
+  Name: <input th:field="*{name}"> <br/> <br/>
+  Price: <input th:field="*{price}"> <br/> <br/>
+  Producer: <input th:field="*{producer}"> <br/> <br/>
+  <input type="submit" value="Submit"/>
+</form>
+</body>
+</html>

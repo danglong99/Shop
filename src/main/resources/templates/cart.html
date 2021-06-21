@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>cart</title>
@@ -12,7 +12,7 @@
 <div class="container">
     <div class="content">
         <div class="shopping_cart">
-            <c:forEach var="map" items="${sessionScope.myCartItems}">
+            <th:block th:each var="map" items="${sessionScope.myCartItems}">
                 <div class="cart_box">
                     <div class="message">
                         <div class="list_close"><a href="${pageContext.request.contextPath}/cart/remove/${map.value.product.id}.html">Remove item</a></div>
@@ -21,7 +21,7 @@
                         <div class="clearfix"></div>
                     </div>
                 </div>
-            </c:forEach>
+            </th:block>
         </div>
         <div class="total">
             <div class="total_right">Free Shipping</div>

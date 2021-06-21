@@ -12,7 +12,7 @@
 <div class="container">
     <div class="content">
         <div class="shopping_cart">
-            <th:block th:each var="map" items="${sessionScope.myCartItems}">
+            <th:block th:each="${sessionScope.myCartItems}">
                 <div class="cart_box">
                     <div class="message">
                         <div class="list_close"><a href="${pageContext.request.contextPath}/cart/remove/${map.value.product.id}.html">Remove item</a></div>

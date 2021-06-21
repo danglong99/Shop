@@ -1,63 +1,49 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Shopping Cart</title>
-
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>cart</title>
 </head>
 <body>
 
-<div class="page-title">My Cart</div>
 
-<th:block th:if="${cartForm == null || cartForm.itemList == null || cartForm.itemList.empty}">
-    <h2>There is no items in Cart</h2>
-    <a th:href="@{/products}">Show Product List</a>
-</th:block>
+<br/><br/>
 
-<th:block th:if="${cartForm != null && cartForm.itemList != null && !cartForm.itemList.empty}">
-    <form method="POST" th:object="${cartForm}" th:action="@{/cart}">
-
-        <div class="product-preview-container"
-             th:each="item, varStatus : ${cartForm.itemList}">
-            <ul>
-
-                <li>Id: <span th:utext="${item.productInfo.id}"></span>
-                    <input type="hidden"
-                           th:name="|itemList[${varStatus.index}].productInfo.id|"
-                           th:value="${item.productInfo.id}" />
-                </li>
-                <li>Name: <span th:utext="${item.productInfo.name}"></span></li>
-                <li>Price:
-                    <span class="price"
-                          th:utext="${#numbers.formatDecimal(item.productInfo.price,3,2,'COMMA')}">
-                        </span>
-                </li>
-                <li>Quantity:
-                    <input
-                            th:name="|itemList[${varStatus.index}].quantity|"
-                            th:value="${item.quantity}" />
-                </li>
-                <li>Subtotal:
-                    <span class="subtotal"
-                          th:utext="${#numbers.formatDecimal(item.amount,3,2,'COMMA')}">
-                        </span>
-                </li>
-                <li>
-                    <a th:href="@{|/shoppingCartRemoveProduct?code=${item.productInfo.id}|}">
-                        Delete
-                    </a>
-                </li>
-            </ul>
+<div class="container">
+    <div class="content">
+        <div class="shopping_cart">
+            <c:forEach var="map" items="${sessionScope.myCartItems}">
+                <div class="cart_box">
+                    <div class="message">
+                        <div class="list_close"><a href="${pageContext.request.contextPath}/cart/remove/${map.value.product.id}.html">Remove item</a></div>
+                        <div class="list_desc"><h4><a href="#"><c:out value="${map.value.product.name}"/></a></h4><c:out value="${map.value.quantity}"/> x
+                            $<c:out value="${map.value.product.price}"/> = <span class="actual">  $<c:out value="${map.value.quantity * map.value.product.price}"/></span></div>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </c:forEach>
         </div>
+        <div class="total">
+            <div class="total_right">Free Shipping</div>
+            <div class="clearfix"> </div>
+            <div class="total_right">Total: $<c:out value="${sessionScope.myCartTotal}"/></div>
+            <div class="clearfix"> </div>
+            <div class="total_right">VAT (10%): <c:out value="${sessionScope.myCartTotal * 0.1}"/></div>
+            <div class="clearfix"> </div>
+            <div class="total_right">Pay: $<c:out value="${sessionScope.myCartTotal + (sessionScope.myCartTotal * 0.1)}"/></div>
+            <div class="clearfix"> </div>
+        </div>
+        <div class="login_buttons">
+            <div class="check_button"><a href="checkout.html">Check out</a></div>
+            <div class="clearfix"></div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="clearfix"></div>
 
-        <div style="clear: both"></div>
-        <input class="button-update-sc" type="submit" value="Update Quantity" />
-        <a class="navi-item"
-           th:href="@{/shoppingCartCustomer}">Enter Customer Info</a>
-        <a class="navi-item"
-           th:href="@{/products}">Continue Buy</a>
-    </form>
-</th:block>
+</div>
+
+<br/><br/>
 
 
 </body>

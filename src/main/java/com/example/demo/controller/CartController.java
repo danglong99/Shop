@@ -1,110 +1,86 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.*;
-import com.example.demo.repository.ProductRepository;
 import com.example.demo.service.ProductService;
-import com.example.demo.service.implement.ProductServiceImpl;
-import com.example.demo.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.WebDataBinder;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @Transactional
 public class CartController {
     @Autowired
     private ProductService productService;
-    @Autowired
-    private ProductRepository productRepository;
 
-    @InitBinder
-    public void myInitBinder(WebDataBinder dataBinder) {
-        Object target = dataBinder.getTarget();
-        if (target == null) {
-            return;
-        }
-        System.out.println("Target=" + target);
-
-        if (target.getClass() == Cart.class) {
-
-        }
-
-    }
-    @RequestMapping(value = {"","/products"})
+    @RequestMapping(value = {"/products"})
     public String viewProduct(Model model){
         model.addAttribute("listProduct" ,productService.getAll());
         return "products";
     }
-    @RequestMapping({"/buyProduct"})
-    public String listProductHandler(HttpServletRequest request, Model model, //
-                                     @RequestParam(value = "id", defaultValue = "") String id) {
-
-        Product product = null;
-        if (id != null && id.length() > 0) {
-            product = productService.getById(id);
+    @RequestMapping(value = "/buyProduct/{id}", method = RequestMethod.GET)
+    public String viewAdd(ModelMap mm, HttpSession session, @PathVariable("id") String productId) {
+        HashMap<String, Cart> cartItems = (HashMap<String, Cart>) session.getAttribute("myCartItems");
+        if (cartItems == null) {
+            cartItems = new HashMap<>();
         }
+        Product product = productService.getById(productId);
         if (product != null) {
-
-            Cart cart = Utils.getCartInSession(request);
-
-            ProductInfo productInfo = new ProductInfo(product);
-
-            cart.addProduct(productInfo, 1);
+            if (cartItems.containsKey(productId)) {
+                Cart item = cartItems.get(productId);
+                item.setProduct(product);
+                item.setQuantity(item.getQuantity() + 1);
+                cartItems.put(productId, item);
+            } else {
+                Cart item = new Cart();
+                item.setProduct(product);
+                item.setQuantity(1);
+                cartItems.put(productId, item);
+            }
         }
-
-        return "redirect:/cart";
-    }
-
-    @RequestMapping({ "/shoppingCartRemoveProduct" })
-    public String removeProductHandler(HttpServletRequest request, Model model, //
-                                       @RequestParam(value = "id", defaultValue = "") String id) {
-        Product product = null;
-        if (id != null && id.length() > 0) {
-            product = productService.getById(id);
-        }
-        if (product != null) {
-
-            Cart cart = Utils.getCartInSession(request);
-
-            ProductInfo productInfo = new ProductInfo(product);
-
-            cart.removeProduct(productInfo);
-
-        }
-
-        return "redirect:/cart";
-    }
-
-    // POST: Cập nhập số lượng cho các sản phẩm đã mua.
-    @RequestMapping(value = { "/cart" }, method = RequestMethod.POST)
-    public String shoppingCartUpdateQty(HttpServletRequest request, //
-                                        Model model, //
-                                        @ModelAttribute("cartForm") Cart cartForm) {
-
-        Cart cart = Utils.getCartInSession(request);
-        cart.updateQuantity(cartForm);
-
-        return "redirect:/cart";
-    }
-
-    // GET: Hiển thị giỏ hàng.
-    @RequestMapping(value = { "/cart" }, method = RequestMethod.GET)
-    public String shoppingCartHandler(HttpServletRequest request, Model model) {
-        Cart myCart = Utils.getCartInSession(request);
-
-        model.addAttribute("cartForm", myCart);
+        session.setAttribute("myCartItems", cartItems);
+        session.setAttribute("myCartTotal", totalPrice(cartItems));
+        session.setAttribute("myCartNum", cartItems.size());
         return "cart";
     }
+
+    @RequestMapping(value = "/sub/{id}", method = RequestMethod.GET)
+    public String viewUpdate(ModelMap mm, HttpSession session, @PathVariable("id") long productId) {
+        HashMap<Long, Cart> cartItems = (HashMap<Long, Cart>) session.getAttribute("myCartItems");
+        if (cartItems == null) {
+            cartItems = new HashMap<>();
+        }
+        session.setAttribute("myCartItems", cartItems);
+        return "cart";
+    }
+
+    @RequestMapping(value = "/remove/{id}", method = RequestMethod.GET)
+    public String viewRemove(ModelMap mm, HttpSession session, @PathVariable("id") long productId) {
+        HashMap<String, Cart> cartItems = (HashMap<String, Cart>) session.getAttribute("myCartItems");
+        if (cartItems == null) {
+            cartItems = new HashMap<>();
+        }
+        if (cartItems.containsKey(productId)) {
+            cartItems.remove(productId);
+        }
+        session.setAttribute("myCartItems", cartItems);
+        session.setAttribute("myCartTotal", totalPrice(cartItems));
+        session.setAttribute("myCartNum", cartItems.size());
+        return "cart";
+    }
+
+    public double totalPrice(HashMap<String, Cart> cartItems) {
+        int count = 0;
+        for (Map.Entry<String, Cart> list : cartItems.entrySet()) {
+            count += list.getValue().getProduct().getPrice() * list.getValue().getQuantity();
+        }
+        return count;
+    }
+
 }
